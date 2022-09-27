@@ -1,0 +1,1772 @@
+---
+title: "Programming Assignment 2"
+output: 
+  html_notebook:
+    number_sections: true
+    toc: true
+    toc_float: true
+    theme: cerulean
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{=html}
+<style>
+  body{
+  font-family: Helvetica;
+  font-size: 11pt;
+  }
+
+  h1, .h1, h2, .h2, h3, .h3 {
+  margin-top: 40px;
+  }
+</style>
+```
+> Name: Sidharth Sharma
+
+<br> In this exercise, you will build regression models to predict house
+price. Fill in your answers and write your code where appropriate.
+
+-   An area where you can write your code will be indicated by these
+    markers.
+
+    "\#### ENTER YOUR CODE HERE \#####"
+
+    this is the space where you write your code
+
+    "\##############################"
+
+-   **DO NOT** write your code or modify the code anywhere else.
+
+```{r, message=FALSE, echo=TRUE}
+# Load necessary packages
+library(tidyverse)
+
+# for grading
+recordAns <- function(varname="unnamed", score, answer, ans_list, score_df){
+  score_df <- bind_rows(score_df,  tibble(varname=varname, score=score))
+  ans_list[[varname]] <- answer
+
+  return(list(ans_list=ans_list, score_df=score_df))
+}
+
+set.seed(321)
+```
+
+# Univariate Regression
+
+## Data
+
+The dataset that you will use in this section is given in
+**"housing_data_uni.csv"**. There are two variables in this dataset:
+
+-   **medv** -- house price in USD (x 1000). This will be the target
+    variable $y$.
+-   **lstat** -- percentage of the population with lower status. This
+    roughly indicates the socio-economic status of the neighborhood
+    around each house. This will be the input variable $x$.
+
+First, you will read the data from this csv file, and store them in a
+variable named **"housing"**. You can use the `read_csv()` function to
+read data from the input csv file.
+
+```{r}
+housing <- read_csv("./data/housing_data_uni.csv")
+```
+
+It is always a good idea to take a look at the data before processing
+them. You can use the `glimpse()` function to preview the data.
+
+```{r}
+glimpse(housing)
+```
+
+As observed, this dataset has 200 rows and 2 columns. Alternatively, you
+can also use the `head()` function to display the first n rows of the
+dataset.
+
+```{r}
+# print the first 10 rows
+head(housing, 10)
+```
+
+Now, let's visualize them on a plot. You can use `ggplot()` to create a
+scatter plot of the two variables.
+
+```{r}
+ggplot(data=housing, aes(x=lstat, y=medv)) + 
+  geom_point()
+```
+
+As anticipated, we observe that the house price (**medv**) is negatively
+correlated with **lstat**. A house is more expensive if it is in a
+better (economically) neighborhood.
+
+------------------------------------------------------------------------
+
+## Linear Regression Model
+
+Now, you will build a linear regression model that best fit these data.
+Particularly, you will find solutions using the two methods discussed in
+the lectures:
+
+-   Normal equation
+-   Gradient descent
+
+------------------------------------------------------------------------
+
+### Normal Equation
+
+As discussed in the lectures, the normal equation for linear regression
+can be written as
+
+$$
+\theta ~=~  \left( X^T X\right)^{-1} X^T y
+$$
+
+In the following code chunk, you will implement a function named
+**"normalEq"**, which computes the parameter vector $\theta$ based on
+the normal equation described above. Here is the input/output
+specification of the function:
+
+-   Inputs:
+    -   $X$ -- Input matrix. It is assumed that the first column of the
+        matrix $X$ contains the bias variable (i.e., $x_0$).
+    -   $y$ -- Target vector.
+-   Output:
+    -   $\theta$ -- Vector of parameters.
+
+You will add your code below to implement the `normalEq()` function.
+Note that the function should generally work for an input matrix of size
+$m \times n$ (i.e., not just a $m \times 2$ matrix in this univariate
+case).
+
+```{r}
+normalEq <- function(X, y){
+  # useful variables
+  # It is assumed that the first column of X already has '1' filled up
+  n <- ncol(X)
+
+  # Initialize output variable
+  theta <- matrix(0, nrow = n, ncol = 1)
+  
+   #### ENTER YOUR CODE HERE #####
+  # What is the dimension of this variable 
+  # This is n rows and 1 col 
+  #  theta = ||
+  #          ||
+  #          ||
+  
+  ##############################
+  # Algorithm
+  # [.]1.Check if X^T.X is invertible
+  # [.]  a. If yes Calculate  the inverse
+  # [.]  b. If no return back the error
+  # [.]2. Multiply the result of step 1 to X^T
+  # [.]3. Multiply the result of step 2 of y
+  ##############################
+  
+
+  
+  # Step 1:
+  X_T <- t(X)
+  inner_product <- X_T %*% X
+  inverse <- solve(inner_product)
+  ## Add debug code
+  
+  # Step 2:
+  total_X <- inverse %*% X_T
+  ## Add debug code
+  
+  # Step 3:
+  theta <- total_X %*% y
+  
+  
+  
+  
+ 
+
+  
+  ##############################
+  
+  return(theta)
+}
+```
+
+Now, let's use the `normalEq()` function to find the model parameters
+for this dataset.
+
+1.  **[1 pt]** Prepare the input matrix $X$. The matrix should have two
+    columns, where the first column is the bias variable ($x_0$) and the
+    second column is the lstat data ($x_1$).
+
+```{r}
+X <- NULL
+#### ENTER YOUR CODE HERE #####
+
+# Make the first column of the data frame as 1
+# Prepare Bias function
+bias <- matrix(1, nrow = 200)
+
+# Separate the lstat variable and add matrix X
+# Get the percent of lower status neighbourhood values
+X2 <- matrix(housing$lstat,nrow=200)
+
+# Create the input variable that will be passed to the linear regression model
+X <- cbind(bias,X2)
+
+##############################
+score_df <- tibble() 
+ans_list <- list()
+ans_rec <- recordAns(varname="X_housing1", score=1, answer=X, ans_list=ans_list, score_df=score_df)
+
+# print out a few rows of X
+head(X)
+```
+
+2.  **[1 pt]** Prepare the target vector $y$.
+
+```{r}
+y <- NULL
+#### ENTER YOUR CODE HERE #####
+
+# The target varible that we want our model to predict
+y <- matrix(housing$medv,nrow=200)
+
+##############################
+ans_rec <- recordAns(varname="y_housing1", score=1, answer=y, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+# print out a few rows of y
+head(y)
+```
+
+3.  **[4 pts]** Find the parameter vector $\theta$, using your
+    `normalEq()` function. Observe the value of the parameter vector
+    $\theta$.
+
+```{r}
+theta <- NULL
+#### ENTER YOUR CODE HERE #####
+
+theta <- normalEq(X,y)
+##############################
+ans_rec <- recordAns(varname="theta_housing1", score=4, answer=theta, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+print(theta)
+```
+
+4.  **[2 pts]** Use `ggplot()` to create a scatter plot of the input
+    variable (lstat) and the output variable (medv). Draw the regression
+    line on top of the data points. You may use the `geom_abline()`
+    function to draw the regression line. The `geom_abline()` function
+    requires 2 parameters, which are the `slope` and the `intercept`.
+    Store the plot in a variable named **p1**.
+
+```{r}
+p1 <- NULL
+#### ENTER YOUR CODE HERE #####
+
+# Plot the points of the input data
+p0 <- ggplot(data=housing, aes(x=lstat, y=medv)) + 
+  geom_point()
+
+# Plot the line of the model with theta(obtained using normal equation)
+# add geometry of the plot (line)
+# theta[2,1] -> theta1 -> slope of the line -> weight of the input varible x suitable to predict y_hat value at the minima -> minima of RSS
+# theta[1,1] -> theta0 -> intercept -> bias() -> bias suitable to predict y_hat value at the minima of RSS
+
+p1 <- p0 + geom_abline(slope = theta[2,1], intercept = theta[1,1]) + 
+    # add labels
+    labs(x="lstat", y="House price", title="House Pricing Prediction for Lower Economic Status Areas") 
+##############################
+ans_rec <- recordAns(varname="p1", score=2, answer=p1, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+# print out the plot
+p1
+```
+
+<br> Next, you will write a function to compute the cost (i.e., the
+residual sum of squares or RSS in this case). The cost in terms of RSS
+can be expressed in a matrix form as $$
+Cost = (X \theta -y)^T (X \theta -y)
+$$
+
+You will write a function named **"computeCost"**, to perform this task.
+Here's the input/output specification of this function.
+
+-   Inputs:
+    -   $X$ -- Input matrix. It is assumed that the first column of the
+        matrix $X$ contains the bias variable ($x_0$).
+    -   $y$ -- Target vector.
+    -   $\theta$ -- Parameter vector.
+-   Output:
+    -   $cost$ -- Cost of errors.
+
+1.  Add your code below to implement the `computeCost()` function. Note
+    that the function should generally work for an input matrix of size
+    $m \times n$ (i.e., not just a $m \times 2$ matrix in this
+    univariate case).
+
+```{r}
+computeCost <- function(X, y, theta){
+  # Output variable
+  cost <- -1
+  
+
+  #### ENTER YOUR CODE HERE #####
+  X_theta <- X %*% theta
+  
+  err <- X_theta - y
+  
+  cost <- t(err) %*% err
+  ##############################
+  
+  return(cost)
+}
+```
+
+2.  **[3 pts]** Use the `computeCost()` function to compute the minimum
+    cost attained by the normal solution, and store it in a variable
+    named **min_cost**. Observe the value of **min_cost**.
+
+```{r}
+min_cost <- NULL
+#### ENTER YOUR CODE HERE #####
+min_cost <- computeCost(X,y,theta)
+
+##############################
+ans_rec <- recordAns(varname="min_cost", score=3, answer=min_cost, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+print(min_cost)
+```
+
+------------------------------------------------------------------------
+
+### Batch Gradient Descent
+
+In this section, you will find the parameter vector $\theta$ by using
+the batch gradient descent (BGD) method. You will be implementing a
+function named **"batchGradientDescent"**, which searches for the
+optimal parameter vector $\theta$ using BGD. Here's the input/output
+specification for this function:
+
+-   Inputs:
+    -   $X$ -- Input matrix. It is assumed that the first column of the
+        matrix $X$ contains the bias variable ($x_0$).
+    -   $y$ -- Target vector.
+    -   $\alpha$ -- Learning rate.
+    -   max_iter -- Maximum number of iterations to loop over.
+-   Outputs:
+    -   $\theta$ -- Vector of parameters
+    -   cost_vec -- Vector containing the values of cost computed after
+        each iteration of BGD.
+
+1.  Write your code below to implement the `batchGradientDescent()`
+    function. Note that the function should generally work for an input
+    matrix of size $m \times n$ (i.e., not just a $m \times 2$ matrix in
+    this univariate case). You should also use the `computeCost()`
+    function to compute the cost after each iteration of BGD.
+
+```{r}
+batchGradientDescent <- function(X, y, alpha = 0.001, max_iter = 100){
+  # useful variables
+  m <- nrow(X)
+  n <- ncol(X)
+  
+  # initialize theta to some random numbers
+  theta <- matrix(runif(n), nrow = n)
+  # initialize cost_vec to -1
+  cost_vec <- rep(-1, times = max_iter)
+
+  #### ENTER YOUR CODE HERE ####
+  t1 <- rep(1, times = max_iter)
+  t2 <- rep(1, times = max_iter)
+  
+    for (x in 1:max_iter) {
+        # RSS = 2X^T(Xθ−y)
+        X_theta = X %*% theta
+        x_y <- X_theta- y
+        RSS <- (2 * t(X)) %*% x_y  
+        theta <- theta - alpha * RSS
+        t1[x] <- computeCost(X,y,theta)
+        t2[x] <- x 
+      }
+
+  
+  cost_vec <- cbind(t1, t2)
+
+  
+    
+  #############################
+  
+  return(list(theta=theta, cost_vec=cost_vec))
+}
+```
+
+2.  **[5 pts]** Now let's find the parameter vector $\theta$ using the
+    `batchGradientDescent()` function. In the code chunk below, set the
+    value of $\alpha$ to 0.00002, set the value of max_iter to 500, and
+    run the `batchGradientDescent()` function. Store the output in a
+    variable named **"bgd_output"**.
+
+```{r}
+bgd_output <- list(theta=NULL, RSS_vec=NULL)
+alpha <- 0.00002
+max_iter <- 500
+#### ENTER YOUR CODE HERE #####
+bgd_output <- batchGradientDescent(X,y,alpha,max_iter)
+
+###############################
+ans_rec <- recordAns(varname="bgd_theta_housing1", score=5, answer=bgd_output$theta, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+```
+
+The output contains the final parameter vector (**theta**) and the
+vector of the cost values (**cost_vec**). You can access them by their
+names (e.g., `bgd_output$theta` and `bgd_output$cost_vec`, respectively)
+Run the code below to display the parameter vector.
+
+```{r}
+bgd_output$theta
+bgd_output$cost_vec
+
+```
+
+3.  **[2 pts]** Use `ggplot()` to plot the cost values in **cost_vec**
+    as a function of iteration. Add a straight horizontal line to the
+    plot. The y-coordinate of the horizontal line should be equal to
+    **min_cost**. Store the plot in a variable named **p2**.
+
+```{r}
+p2 <- NULL
+
+#### ENTER YOUR CODE HERE #####
+#p3 <- ggplot(data=housing, aes(x=lstat, y=medv)) + 
+#  geom_point()
+
+   
+    # add geometry of the plot (line)
+p21 <- ggplot(as.data.frame(bgd_output$cost_vec)) + 
+    # add geometry of the plot (line)
+    geom_line(aes(x=bgd_output$cost_vec[,2], y=bgd_output$cost_vec[,1]), color = "blue") 
+
+p2 <- p21 + geom_line(aes(x=bgd_output$cost_vec[,2], y=min_cost), color = "red")+
+    # add labels: min_cost
+    labs(x="Interations", y="RSS Cost vector", title="RSS Cost vector decreaseswith interations") 
+###############################
+ans_rec <- recordAns(varname="p2", score=2, answer=p2, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+
+
+p2
+```
+
+\$
+
+-   Does the cost reach the **min_cost** with these values of $\alpha$
+    and max_iter?
+
+(Side note: Not to be included in this assignment, but try for yourself
+to see if using $\alpha$ = 0.001 makes BGD converge in this case.)
+
+------------------------------------------------------------------------
+
+### Feature Scaling
+
+In this section, you will implement a feature scaling function named
+**"featureScaling"**. This function will scale the feature in each
+column of an input matrix $X$ (except the bias variable $x_0$) with mean
+normalization. The mean normalization is given as
+
+$$
+z = \frac{x - \overline{x}}{\max{(x)} - \min{(x)}}
+$$
+
+Here's the input/output specification for the `featureScaling()`
+function:
+
+-   Input:
+    -   $X$ -- Input matrix. It is assumed that the first column of the
+        matrix $X$ contains the bias variable ($x_0$).
+-   Outputs:
+    -   $Z$ -- A matrix after feature scaling (it should have the same
+        dimension as $X$).
+    -   xmax -- A vector storing the max of each column of $X$.
+    -   xmin -- A vector storing the min of each column of $X$.
+
+1.  Add your code below to implement the `featureScaling()` function.
+
+```{r}
+featureScaling <- function(X){
+  # useful vars
+  m <- nrow(X)
+  n <- ncol(X)
+  
+  # initialize output var
+  Z <- matrix(0, ncol = n, nrow = m)
+
+  # Remember that we do not scale x_0
+  #### ENTER YOUR CODE HERE #####
+  
+  # Create vectors for the xmax,xmin and xmean for each column of input X 
+  xmax <- matrix(0, ncol = n)
+  xmin <- matrix(0, ncol = n)
+  xmean <- matrix(0, ncol = n)
+  Xscaled <- matrix(0, ncol = n, nrow = m)
+  
+  # Calculate xmean, xmin and xmax
+  for (x in 2:n) {
+    xmax[x]  <- max(X[,x])
+    xmin[x]  <- min(X[,x])
+    xmean[x] <- mean(X[,x])
+  }
+  
+  # Since we don't want to scales x_0 the first column of x
+  # we will just store it separately
+  X1 <- X[,1]
+  
+  # Calculate the noramlized form for each value of x 
+  # and then stored it in Xscaled
+  for (t in 2:n) {
+    denom <- xmax[t] - xmin[t]
+    Xscaled[,t] <- (X[,t] - xmean[t]) /  denom
+  }
+  
+  # Attach the X1 column infornt of Xscaled 
+  Z <- cbind(X1,Xscaled[,2:n])
+
+  #############################
+  return(list(Z=Z,xmax=xmax,xmin=xmin))
+}
+```
+
+)
+
+2.  **[3 pts]** Use the `featureScaling()` function to scale the feature
+    of the input $X$, and store the output in a new matrix $Z$. Take a
+    look at the matrix $Z$ and make sure that the features are scaled as
+    expected.
+
+```{r}
+Z <- NULL
+#### ENTER YOUR CODE HERE #####
+Z <- featureScaling(X)
+
+#############################
+ans_rec <- recordAns(varname="Z_housing1", score=3, answer=Z, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+head(Z$Z)
+```
+
+3.  **[2 pt]** Use $Z$ as an input, set $\alpha$ = 0.001, max_iter =
+    150, and run the `batchGradientDescent()` function. Store the output
+    of the function in a variable named **"bgd_output_fs"**.
+
+```{r}
+bgd_output_fs <- list(theta=NULL, cost_vec=NULL)
+alpha <- 0.001
+max_iter <- 150
+#### ENTER YOUR CODE HERE #####
+bgd_output_fs <- batchGradientDescent(Z$Z,y,alpha,max_iter)
+
+#############################
+ans_rec <- recordAns(varname="bgd_theta_fs_housing1", score=2, answer=bgd_output_fs$theta, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+bgd_output_fs$theta
+bgd_output_fs$cost_vec
+```
+
+4.  **[2 pts]** Use `ggplot()` to plot the cost values in cost_vec as a
+    function of iteration. Add a straight horizontal line to the plot.
+    The y-coordinate of the horizontal line should be equal to min_cost.
+    Store the plot in a variable named **p3**.
+
+```{r}
+p3 <- NULL
+#### ENTER YOUR CODE HERE #####
+
+min_cost <- computeCost(Z$Z,y,bgd_output_fs$theta)
+print(min_cost)
+p31 <- ggplot(as.data.frame(bgd_output_fs$cost_vec)) + 
+  geom_line( aes(x=bgd_output_fs$cost_vec[,2], y=bgd_output_fs$cost_vec[,1]), color='blue')
+    
+    # add geometry of the plot (line)
+p3 <- p31 + geom_line(aes(x=bgd_output_fs$cost_vec[,2], y=min_cost), color='red') + 
+    # add labels
+    labs(x="Interation", y="RSS", title="Cost vector and Min cost for Scaled input features")
+
+#############################
+ans_rec <- recordAns(varname="p3", score=2, answer=p3, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+p3
+```
+
+-   Does the cost reach the min_cost with these values of $\alpha$ and
+    max_iter?
+
+**Feature scaling helps BGD converge faster.** In general, it is a good
+practice to scale your features before doing BGD.
+
+------------------------------------------------------------------------
+
+# Multivariate Regression
+
+In this section, we will consider multivariate linear regression.
+Instead of having only one input feature, we will consider more input
+features in the model. However, the basic ideas developed in the
+previous section still apply.
+
+## Data
+
+The dataset that you will use in this section is given in
+**"housing_data_multi.csv"**. There are six variables in this dataset:
+
+-   **medv** -- house price in USD (x 1000). This will be the target
+    variable $y$.
+-   **lstat** -- percentage of the population with lower status. This
+    roughly indicates the socio-economic status of the neighborhood
+    around each house.
+-   **rm** -- average number of rooms per dwelling.
+-   **crim** -- per capita crime rate by town.
+-   **tax** -- full-value property-tax rate per \$10,000.
+-   **ptratio** -- pupil-teacher ratio by town.
+
+First, you will read the data from this csv file, and store them in a
+variable named **"housing2"**. You can use the `read_csv()` function to
+read the input csv data.
+
+```{r}
+housing2 <- read_csv("./data/housing_data_multi.csv")
+```
+
+You can use the `glimpse()` function to preview the data.
+
+```{r}
+glimpse(housing2)
+```
+
+As observed, the dataset has 200 rows and 6 columns.
+
+## Normal Equation
+
+You will build a regression model that predicts house price based on the
+5 input features given in the dataset. The model can be expressed as $$
+\hat{y} = \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \theta_3 x_3 + \theta_4 x_4 + \theta_5 x_5
+$$ where $x_1$ is lstat, $x_2$ is rm, $x_3$ is crim, $x_4$ is tax, and
+$x_5$ is ptratio.
+
+Let's use the `normalEq()` function that you developed in the previous
+section to solve for the optimal parameter $\theta$.
+
+1.  **[1 pt]** Prepare the input matrix $X$. The matrix should have 6
+    columns, where the first column is the bias variable ($x_0$), and
+    the rest are the 5 input features.
+
+```{r}
+X <- NULL
+#### ENTER YOUR CODE HERE #####
+m <- matrix(1, nrow = 200)
+#glimpse(m)
+X1 <- matrix(housing2$lstat,nrow=200)
+X2 <- matrix(housing2$rm,nrow=200)
+X3 <- matrix(housing2$crim,nrow=200)
+X4 <- matrix(housing2$tax,nrow=200)
+X5 <- matrix(housing2$ptratio,nrow=200)
+
+X <- cbind(m,X1,X2,X3,X4,X5)
+
+##############################
+ans_rec <- recordAns(varname="X_housing2", score=1, answer=X, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+head(X)
+```
+
+2.  **[1 pt]** Prepare the response vector $y$.
+
+```{r}
+y <- NULL
+#### ENTER YOUR CODE HERE #####
+
+y <- matrix(housing2$medv,nrow=200)
+##############################
+ans_rec <- recordAns(varname="y_housing2", score=1, answer=y, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+head(y)
+```
+
+3.  **[1 pt]** Find the optimal parameter $\theta$ using the
+    `normalEq()` function.
+
+```{r}
+theta <- NULL
+#### ENTER YOUR CODE HERE #####
+  # Initialize output variable
+  
+#theta <- matrix(0, nrow = n, ncol = 1)
+  
+   #### ENTER YOUR CODE HERE #####
+  # What is the dimension of this variable 
+  # This is n rows and 1 col 
+  #  theta = ||
+  #          ||
+  #          ||
+  
+  ##############################
+  # Algorithm
+  # [.]1.Check if X^T.X is invertible
+  # [.]  a. If yes Calculate  the inverse
+  # [.]  b. If no return back the error
+  # [.]2. Multiply the result of step 1 to X^T
+  # [.]3. Multiply the result of step 2 of y
+  ##############################
+  
+
+  
+  # Step 1:
+  X_T <- t(X)
+  inner_product <- X_T %*% X
+  inverse <- solve(inner_product)
+  ## Add debug code
+  
+  # Step 2:
+  total_X <- inverse %*% X_T
+  ## Add debug code
+  
+  # Step 3:
+  theta <- total_X %*% y
+
+##############################
+ans_rec <- recordAns(varname="theta_housing2", score=1, answer=theta, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+print(theta)
+```
+
+3
+
+4.  **[1 pt]** Compute the minimum cost attained by the normal solution,
+    using the `computeCost()` function. Store the cost in a variable
+    named **min_cost_multi**. Observe the value of **min_cost_multi**.
+
+```{r}
+min_cost_multi <- NULL
+#### ENTER YOUR CODE HERE #####
+
+min_cost_multi <- computeCost(X,y,theta)
+##############################
+ans_rec <- recordAns(varname="min_cost_multi", score=1, answer=min_cost_multi, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+min_cost_multi
+```
+
+## Gradient Descent
+
+In this section, you will find the parameters of the model with BGD.
+
+1.  **[1 pt]** First, let's use the `featureScaling()` function to scale
+    the features in the input matrix $X$. Store the scaled input matrix
+    in a new matrix named $Z$.
+
+```{r}
+Z <- NULL
+#### ENTER YOUR CODE HERE #####
+#glimpse(X)
+Z<-featureScaling(X)
+#glimpse(Z)
+##############################
+ans_rec <- recordAns(varname="Z_housing2", score=1, answer=Z, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+head(Z$Z)
+```
+
+2.  **[1 pt]** Find the optimal parameters using the
+    `batchGradientDescent()` function. In the code chunk below, set
+    $\alpha$ = 0.001, max_iter = 150, and run the
+    `batchGradientDescent()` function. Store the output of the function
+    in a variable named **"bgd_output"**.
+
+```{r}
+bgd_output <- list(theta=NULL, cost_vec=NULL)
+alpha <- 0.001
+max_iter <- 150
+#### ENTER YOUR CODE HERE #####
+
+bgd_output <- batchGradientDescent(Z$Z,y,alpha,max_iter)
+###############################
+ans_rec <- recordAns(varname="bgd_theta_housing2", score=1, answer=bgd_output$theta, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+bgd_output$theta
+```
+
+3.  **[1 pt]** Use `ggplot()` to plot the cost values in **cost_vec** as
+    a function of iteration. Add a straight horizontal line to the plot.
+    The y-coordinate of the horizontal line should be equal to
+    **min_cost_multi**. Store the plot in a variable named **p4**
+
+```{r}
+p4 <- NULL
+#### ENTER YOUR CODE HERE #####
+
+min_cost_multi <- computeCost(Z$Z,y,bgd_output$theta)
+
+p41 <- ggplot(as.data.frame(bgd_output$cost_vec)) + 
+  geom_line( aes(x=bgd_output$cost_vec[,2], y=bgd_output$cost_vec[,1]), color='blue')
+    
+    # add geometry of the plot (line)
+p4 <- p41 + geom_line(aes(x=bgd_output$cost_vec[,2], y=min_cost_multi), color='red') + 
+    # add labels
+    labs(x="Iteration", y="RSS [Cost Vector]", title="Multivariate BGD LR: Cost vector and min_cost with scaled features")
+###############################
+ans_rec <- recordAns(varname="p4", score=1, answer=p4, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+p4
+```
+
+-   Does your cost reach the **min_cost_multi** with these values of
+    $\alpha$ and max_iter?
+
+------------------------------------------------------------------------
+
+# Ridge Regression
+
+In this section, you will implement ridge regression and regularization.
+
+## Data
+
+The dataset that you will use in this section is
+**"housing_data_rgd.csv"**. All the variables are the same as those
+previously considered in the multivariate regression problem, except one
+additional variable. The new variable is
+
+-   **qua** -- the overall quality of neighborhood.
+
+First, you will read the data from this csv file, and store them into a
+variable named **"housing3"**. You can use the `read_csv()` function to
+read the input csv data.
+
+```{r}
+housing3 <- read_csv("./data/housing_data_rgd.csv")
+```
+
+## Normal Equation
+
+You will build a regression model that predicts house price based on the
+6 input features given in the dataset. The model can be expressed as $$
+\hat{y} = \theta_0 + \theta_1 x_1 + \theta_2 x_2 + \theta_3 x_3 + \theta_4 x_4 + \theta_5 x_5 + \theta_6 x_6
+$$ where $x_1$ is lstat, $x_2$ is rm, $x_3$ is crim, $x_4$ is tax, $x_5$
+is ptratio, and $x_6$ is qua.
+
+Let's use the `normalEq()` function that you developed in the earlier
+section to solve for the optimal parameter $\theta$.
+
+1.  **[1 pt]** Prepare the input matrix $X$. The matrix should have 7
+    columns, where the first column is the bias variable ($x_0$), and
+    the rest are the 6 input features.
+
+```{r}
+X <- NULL
+#### ENTER YOUR CODE HERE #####
+m <- matrix(1, nrow = 200)
+#glimpse(m)
+X1 <- matrix(housing3$lstat,nrow=200)
+X2 <- matrix(housing3$rm,nrow=200)
+X3 <- matrix(housing3$crim,nrow=200)
+X4 <- matrix(housing3$tax,nrow=200)
+X5 <- matrix(housing3$ptratio,nrow=200)
+X6 <- matrix(housing3$qua,nrow=200)
+X <- cbind(m,X1,X2,X3,X4,X5,X6)
+
+###############################
+ans_rec <- recordAns(varname="X_housing3", score=1, answer=X, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+head(X)
+```
+
+2.  **[1 pt]** Prepare the response vector $y$.
+
+```{r}
+y <- NULL
+#### ENTER YOUR CODE HERE #####
+
+y <- matrix(housing3$medv,nrow=200)
+###############################
+ans_rec <- recordAns(varname="y_housing3", score=1, answer=y, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+head(y)
+```
+
+3.  Find the optimal parameter $\theta$, using the `normalEq()`
+    function. Execute the code chunk below and observe the result.
+
+```{r}
+theta <- try(normalEq(X, y))
+```
+
+You will notice that the solution cannot be obtained from the
+`normalEq()` function because $(X^TX)$ is not invertible.
+
+Since $(X^T X)$ is not invertible, we cannot use the normal equation to
+solve for the solution. In this case, we can resort to ridge regression.
+As discussed in the lectures, in ridge regression, we can find the
+parameter $\theta$ as follows $$
+\theta_R = \left(X^TX + \lambda L \right)^{-1} X^Ty
+$$ where $\lambda > 0$ and $L$ is a modified identity matrix with all
+zeros in the first row.
+
+4.  Write a function named **"ridgeRegression"**, which solves for the
+    parameter $\theta_R$ as described in the above equation. Here's the
+    input/output specification for this function:
+
+-   Inputs:
+    -   $X$ -- Input matrix. It is assumed that the first column of the
+        matrix $X$ contains the bias variable ($x_0$).
+    -   $y$ -- Target vector.
+    -   $\lambda$ -- A positive number for adjusting the degree of
+        regularization.
+-   Output:
+    -   $\theta_R$ -- Vector of parameters.
+
+```{r}
+ridgeRegression <- function(X, y, lambda){
+  # useful variables
+  n <- ncol(X)
+
+  # Output variable
+  theta_R <- matrix(0, nrow = n, ncol = 1)
+  
+  #### ENTER YOUR CODE HERE #####
+
+  # Write your algorithm here:
+    # Step 1:
+  # Define L: that is a identity matrix with first colum  being zero
+  L <- diag(n)
+  L[1,] <- L[1,] * 0
+  X_T <- t(X)
+  inner_product <- X_T %*% X + lambda * L 
+  
+  inverse <- solve(inner_product)
+  ## Add debug code
+  
+  # Step 2:
+  total_X <- inverse %*% X_T
+  ## Add debug code
+  
+  # Step 3:
+  theta_R <- total_X %*% y
+  ##############################
+  return(theta_R)
+}
+```
+
+5.  **[4 pts]** Now, use the `ridgeRegression()` function to find the
+    parameter $\theta_R$. Set $\lambda = 0.01$. Store the result in a
+    variable named **theta_R**.
+
+```{r}
+theta_R <- NULL
+lambda <- 0.01
+#### ENTER YOUR CODE HERE #####
+theta_R <- ridgeRegression(X,y, lambda)
+
+###############################
+ans_rec <- recordAns(varname="theta_R_housing3", score=4, answer=theta_R, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+theta_R
+```
+
+6.  **[1 pt]** Use the obtained parameters **theta_R** to predict the
+    price of the input $X$. Store the predicted price in a variable
+    named **y_pred_ridge**
+
+```{r}
+y_pred_ridge <- NULL
+#### ENTER YOUR CODE HERE #####
+y_pred_ridge <- X %*% theta_R
+
+###############################
+ans_rec <- recordAns(varname="y_pred_ridge_housing3", score=1, answer=y_pred_ridge, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+head(y_pred_ridge)
+```
+
+------------------------------------------------------------------------
+
+## Gradient Descent
+
+In this section, you will implement ridge regression using the gradient
+descent method. As discussed in the lecture, in ridge regression, the
+cost is modified by adding the regularization terms as follows $$
+Cost = \sum_{i=1}^{m} (\theta_0 + \theta_1 x_1^{(i)} + \dots + \theta_n x_n^{(i)} - y)^2 + \lambda \sum_{j=1}^{n} \theta_j^2
+$$
+
+In the code chunk below, implement the `computeCostReg()` function to
+compute the above cost. Here's the input/output specification of this
+function.
+
+-   Inputs:
+    -   $X$ -- Input matrix. It is assumed that the first column of the
+        matrix $X$ contains the bias variable ($x_0$).
+    -   $y$ -- Target vector.
+    -   $\theta$ -- Parameter vector.
+    -   $\lambda$ -- The regularization parameter
+-   Output:
+    -   $cost$ -- Cost of errors.
+
+```{r}
+computeCostReg <- function(X, y, theta, lambda){
+  # Output variable
+  cost <- -1
+  
+  #### ENTER YOUR CODE HERE #####
+  part_2 <- lambda * t(theta) %*% theta
+  part_1 <- t(X %*% theta - y) %*% (X %*% theta - y) 
+  
+  cost <= part_1 + part_2
+
+  ##############################
+  return(cost)
+}
+```
+
+Next, you will implement a regularized version of the
+`batchGradientDescent()` function. Let's call this function
+`batchGradientDescentReg()`. Here's the input/output specification for
+this function:
+
+-   Inputs:
+    -   $X$ -- Input matrix. It is assumed that the first column of the
+        matrix $X$ contains the bias variable ($x_0$).
+    -   $y$ -- Target vector.
+    -   $\alpha$ -- Learning rate.
+    -   max_iter -- Maximum number of iterations to loop over.
+    -   lambda -- A positive number for adjusting the degree of
+        regularization.
+-   Outputs:
+    -   $\theta$ -- Vector of parameters
+    -   cost_vec -- Vector containing the value of cost after each
+        iteration of BGD
+
+1.  Add your code below to implement the `batchGradientDescentReg()`
+    function. You should also use the `computeCostReg()` function to
+    compute the cost after each iteration of BGD.
+
+```{r}
+batchGradientDescentReg <- function(X, y, alpha = 0.001, max_iter = 100, lambda = 0.01){
+  # useful variables
+  m <- nrow(X)
+  n <- ncol(X)
+  
+  # initialize theta to some random numbers
+  theta <- matrix(runif(n), nrow = n)
+  # initialize RSS_vec to -1
+  #cost_vec <- rep(-1, times = max_iter)
+  t1 <- rep(1, times = max_iter)
+  t2 <- rep(1, times = max_iter)
+  #### ENTER YOUR CODE HERE ####
+  for (x in 1:max_iter) {
+    # RSS = 2X^T(Xθ−y) + 2*lambda * theta 
+        X_theta = X %*% theta
+        x_y <- X_theta- y
+        RSS <- (2 * t(X)) %*% x_y  + 2 * lambda * theta
+        theta <- theta - alpha * RSS
+        t1[x] <- computeCostReg(X,y,theta,lambda)
+        t2[x] <- x 
+      }
+
+  
+    cost_vec <- cbind(t1, t2)
+    
+  ##############################
+  return(list(theta=theta, cost_vec=cost_vec))
+}
+```
+
+2.  **[1 pt]** Scale the features with the `featureScaling()` function.
+    Store the scaled inputs in a new matrix named $Z$.
+
+```{r}
+Z <- NULL
+#### ENTER YOUR CODE HERE #####
+
+Z<-featureScaling(X)
+##############################
+ans_rec <- recordAns(varname="Z_housing3", score=1, answer=Z, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+head(Z$Z)
+```
+
+3.  **[4 pts]** Find the optimal parameter for the regularized linear
+    regression model, using the `batchGradientDescentReg()` function.
+    Set $\alpha = 0.001$, max_iter = 1000, and $\lambda = 0.01$. Store
+    the output of the function in a variable named **"bgd_output_reg"**.
+
+```{r}
+bgd_output_reg <- list(theta=NULL, RSS_vec=NULL)
+alpha = 0.001
+max_iter <- 1000
+lambda <- 0.01
+#### ENTER YOUR CODE HERE #####
+bgd_output_reg <- batchGradientDescentReg(Z$Z,y, alpha = 0.001, max_iter = 1000, lambda = 0.01)
+
+###############################
+ans_rec <- recordAns(varname="bgd_theta_housing3", score=4, answer=bgd_output_reg$theta, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+bgd_output_reg$theta
+```
+
+4.  **[1 pt]** Use the obtained parameters **bgd_output_reg\$theta** to
+    predict the price of the normalized input $Z$. Store the predicted
+    price in a variable named **y_pred_reg**
+
+```{r}
+y_pred_reg <- NULL
+#### ENTER YOUR CODE HERE #####
+
+y_pred_reg <- Z$Z %*%  bgd_output_reg$theta
+###############################
+ans_rec <- recordAns(varname="y_pred_reg_housing3", score=1, answer=y_pred_reg, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+head(y_pred_reg)
+```
+
+-   Are these predicted prices the same (sufficiently close) to what you
+    obtained from ridge regression?
+
+5.  **[1 pt]** Find the optimal parameter for the regularized linear
+    regression model, using the `batchGradientDescentReg()` function.
+    Set $\alpha = 0.001$, max_iter = 1000, and $\lambda = 10$. Store the
+    output of the function in a variable named **"bgd_output_reg2"**.
+
+```{r}
+# Find the parameter vector using BGD
+bgd_output_reg2 <- list(theta=NULL, RSS_vec=NULL)
+alpha = 0.001
+max_iter <- 1000
+lambda <- 10
+#### ENTER YOUR CODE HERE #####
+
+bgd_output_reg2 <- batchGradientDescentReg(Z$Z, y, alpha = 0.001, max_iter = 1000, lambda = 10)
+###############################
+ans_rec <- recordAns(varname="bgd_theta2_housing3", score=1, answer=bgd_output_reg2$theta, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+bgd_output_reg2$theta
+```
+
+6.  **[1 pt]** Find the optimal parameter for the regularized linear
+    regression model, using the `batchGradientDescentReg()` function.
+    Set $\alpha = 0.001$, max_iter = 1000, and $\lambda = 100$. Store
+    the output of the function in a variable named
+    **"bgd_output_reg3"**.
+
+```{r}
+# Find the parameter vector using BGD
+bgd_output_reg3 <- list(theta=NULL, RSS_vec=NULL)
+alpha = 0.001
+max_iter <- 1000
+lambda <- 100
+
+#### ENTER YOUR CODE HERE #####
+
+bgd_output_reg3 <- batchGradientDescentReg(Z$Z, y, alpha = 0.001, max_iter = 1000, lambda = 100)
+
+###############################
+ans_rec <- recordAns(varname="bgd_theta3_housing3", score=1, answer=bgd_output_reg3$theta, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+bgd_output_reg3$theta
+```
+
+7.  **[2 pts]** Create a data frame named **theta_params**, where its
+    1st column is the $\theta$ in **bgd_output_reg**, its 2nd column is
+    the $\theta$ in **bgd_output_reg2**, and the last column is the
+    $\theta$ in **bgd_output_reg3**. Name the columns as l1, l2, and l3,
+    respectively. You should observe how the value of $\lambda$ affects
+    the model parameters $\theta$.
+
+```{r}
+theta_params <- NULL
+#### ENTER YOUR CODE HERE ####
+theta0 <- matrix(bgd_output_reg$theta,nrow=7)
+theta1 <- matrix(bgd_output_reg2$theta,nrow=7)
+theta2 <- matrix(bgd_output_reg3$theta,nrow=7)
+
+theta_params <- cbind(theta0, theta1, theta2)
+############################
+ans_rec <- recordAns(varname="bgd_theta_params_housing3", score=2, answer=theta_params, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+
+theta_params
+```
+
+------------------------------------------------------------------------
+
+# Bias-Variance Tradeoff
+
+<br> In this section, we will use a regularization technique to reduce
+variance and prevent overfitting. Recall that the hyper-parameter that
+we can tune in regularized linear regression is the parameter $\lambda$.
+Increasing the value of $\lambda$ helps decrease the variance but also
+increases the bias. We need to strike a balance between these two
+quantities. The goal in this exercise is to choose an appropriate value
+of $\lambda$ for our model.
+
+The data that you will use in this exercise are given in these two
+files: (i) **mpg_training.csv** and (ii) **mpg_cv.csv**. Each of these
+files contains the fuel efficiency (in miles/gallon) and other features
+of a vehicle (e.g., number of cylinders, horse power, weight, etc.) You
+will build a linear regression model that predicts the fuel efficiency
+of a vehicle based on these given features.
+
+1.  Read data from **mpg_training.csv**, and store them in a variable
+    named **tr**. Read data from **mpg_cv.csv**, and store them in a
+    variable named **cv**.
+
+```{r}
+tr <- NULL
+cv <- NULL
+# read training and cv data
+#### ENTER YOUR CODE HERE ####
+tr <- read_csv("./data/mpg_training.csv")
+cv <- read_csv("./data/mpg_cv.csv")
+##############################
+head(tr)
+head(cv)
+glimpse(tr)
+glimpse(cv)
+```
+
+-   Now let's take a look at the data in the **tr** set. Use the
+    `glimpse()` command to preview the data. You should see that the
+    dataset contains 11 variables. The first variable (first column) is
+    **mpg**. This will be the target variable. The rest of the variables
+    will be used as input features.
+
+```{r}
+#### ENTER YOUR CODE HERE ####
+glimpse(cv)
+
+##############################
+```
+
+2.  **[4 pts]** Create the following variables:
+
+    -   $X_{tr}$ -- An input matrix containing the input features in the
+        **tr** set, with an augmented variable $x_0 = 1$ in its first
+        column. Totally, $X_{tr}$ should have 11 columns (including
+        $x_0$).
+
+    -   $y_{tr}$ -- The target variable in the **tr** set. This would be
+        the **mpg**.
+
+    -   $X_{cv}$ -- An input matrix containing the input features in the
+        **cv** set, with an augmented variable $x_0 = 1$ in its first
+        column. Totally, $X_{cv}$ should have 11 columns (including
+        $x_0$).
+
+    -   $y_{cv}$ -- The target variable in the **cv** set. This would be
+        the **mpg**.
+
+```{r}
+X_tr <- NULL
+y_tr <- NULL
+X_cv <- NULL
+y_cv <- NULL
+#### ENTER YOUR CODE HERE ####
+
+# training data only has 20 rows
+m1 <- matrix(1, nrow = 20)
+
+# Cross validation data has 12 rows
+m2 <- matrix(1, nrow = 12)
+
+temp_1 <- data.matrix(tr)
+X_tr <- cbind(m1,temp_1[,2:11])
+y_tr <- temp_1[,1]
+
+temp_2 <- data.matrix(cv)
+X_cv <- cbind(m2,temp_2[,2:11])
+y_cv <- temp_2[,1]
+
+
+#############################
+ans_rec <- recordAns(varname="X_tr_mpg", score=1, answer=X_tr, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+ans_rec <- recordAns(varname="y_tr_mpg", score=1, answer=y_tr, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+ans_rec <- recordAns(varname="X_cv_mpg", score=1, answer=X_cv, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+ans_rec <- recordAns(varname="y_cv_mpg", score=1, answer=y_cv, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+head(X_tr)
+head(y_tr)
+head(X_cv)
+head(y_cv)
+```
+
+3.  In the code chunk below, you will implement a z-score normalization
+    function named **zNormalize**. In z-score normalization, an input
+    $x$ is normalized with its mean and standard deviation as follows:
+    $$
+    z = \frac{x-\overline{x}}{\sigma}
+    $$ where $\overline{x}$ is the mean of $x$ and $\sigma$ is its
+    standard deviation. Here's the specification of the function:
+
+    -   Input:
+        -   $X$ -- An input matrix. It is assumed that the first column
+            of $X$ contains $x_0 = 1$.
+    -   Outputs:
+        -   $Z$ -- A matrix of scaled inputs. $Z$ should have the same
+            dimension as $X$. Do not normalize $x_0$.
+        -   xbar -- A vector storing the mean of each column of $X$.
+        -   sigma -- A vector storing the standard deviation of each
+            column of $X$.
+
+```{r}
+zNormalize <- function(X, xbar, sigma,tr){
+  # useful vars
+  m <- nrow(X)
+  n <- ncol(X)
+
+  # initialize output var
+  Z <- matrix(0, ncol = n, nrow = m)
+  Xscaled <- matrix(0, ncol = n, nrow = m)
+  
+  if (tr == 1) {
+    xbar <- rep(0, n)
+    sigma <- rep(1, n)
+    for (x in 2:n) {
+      xbar[x]  <- mean(X[,x])
+      sigma[x]  <- sd(X[,x])
+    }
+  }
+  # Remember that we do not scale x_0
+  #### ENTER YOUR CODE HERE #####
+  X1 <- X[,1]
+  
+   for (t in 2:n) {
+    denom <- sigma[t]
+    Xscaled[,t] <- (X[,t] - xbar[t]) /  denom
+   }
+  #if(tr==0){
+  #  print(Xscaled)
+  #}
+  Z <- cbind(X1,Xscaled[,2:n])
+  
+  #############################
+  return(list(Z=Z, xbar=xbar, sigma=sigma))
+}
+```
+
+4.  Another popular metric that is typically used to the compare the
+    performance of linear regression models is the mean squared error
+    (MSE), which is defined as
+
+$$
+MSE = \frac{1}{m} \sum_{i=1}^{m} \left( \theta_0 + \theta_1 x_1^{(i)} + \dots + \theta_n x_n^{(i)} - y^{(i)} \right)^2 
+$$
+
+Next, you will write a function that builds a regularized linear
+regression model on the **tr** data and validates its performance on the
+**cv** data. Let's call this function **cvReg**. Here's the input/output
+specification for this function:
+
+-   Inputs:
+
+    -   $X_{tr}$ -- An input matrix created from the **tr** set (done in
+        the previous step)
+
+    -   $y_{tr}$ -- The target varaible $y$ from the **tr** set (done in
+        the previous step)
+
+    -   $X_{cv}$ -- -- An input matrix created from the **cv** set (done
+        in the previous step)
+
+    -   $y_{cv}$ -- The target varaible $y$ from the **cv** set (done in
+        the previous step)
+
+    -   $\alpha$ -- The learning rate (for BGD)
+
+    -   max_iter -- The maximum number of iterations (for BGD)
+
+    -   $\lambda$ -- The regularization parameter
+
+-   Outputs:
+
+    -   $\theta$ -- The parameter vector
+
+    -   MSE_tr -- The MSE on the **tr** set
+
+    -   MSE_cv -- The MSE on the **cv** set
+
+    Here are a few steps that you should take:
+
+    -   With the input matrix $X_{tr}$, use (regularized) batch gradient
+        descent to find the model parameter $\theta$. Don't forget to
+        scale your features. You should use the `zNormalize()` function
+        developed earlier.
+
+    -   Find the MSE on the **tr** set and store it in a variable named
+        **MSE_tr**
+
+    -   Perform z-score normalization for each column of $X_{cv}$. You
+        should normalize the features in $X_{cv}$ with the same set of
+        values (i.e., mean, sigma) used in normalizing the features in
+        the matrix $X_{tr}$.
+
+    -   Use the obtained $\theta$ to predict the target variable on the
+        **cv** set. Find the MSE and store it in a variable named
+        **"MSE_cv"**.
+
+    -   You may want to use the `batchGradientDescentReg()` function
+        developed earlier.
+
+```{r}
+cvReg <- function(X_tr, y_tr, X_cv, y_cv, alpha, max_iter, lambda){
+
+
+  MSE_tr <- NULL
+  MSE_cv <- NULL
+  Z_tr <- zNormalize(X_tr,0,0,1)
+
+  #### ENTER YOUR CODE HERE ####  
+  # Step 1: Calculate the value of theta from the training set
+  bdg_tr <- batchGradientDescentReg(Z_tr$Z,y_tr,alpha, max_iter, lambda)
+  theta <- bdg_tr$theta 
+  
+  # Find the MSE on the training set
+  # Divide by 20 as m = no. of observations
+  MSE_tr <- (t(Z_tr$Z %*% theta - y_tr) %*% (Z_tr$Z %*% theta - y_tr))/20
+  
+  # Normalize the cross-validate dataset using the mean and standard deviation 
+  # of the training set
+  Z_cv <- zNormalize(X_cv, Z_tr$xbar, Z_tr$sigma, 0)
+  #print(Z_cv$Z)
+  # Predict the target variable in CV set using the theta we have
+  y_hat_cv <- Z_tr$Z %*% theta
+  MSE_cv <- (t(Z_cv$Z %*% theta - y_cv) %*% (Z_cv$Z %*% theta - y_cv))/12
+  ##########################
+  return(list(theta=theta, MSE_tr=MSE_tr, MSE_cv=MSE_cv))
+}
+```
+
+5.  **[5 pts]** Use the following values of $\lambda$ as inputs to the
+    `cvReg()` function. $$
+    \lambda \in (0, 0.1, 0.5, 1, 5, 10, 20)
+    $$ For each value of $\lambda$, record the MSE_tr and the MSE_cv
+    returned by the `cvReg()` function. Finally, store $\lambda$,
+    MSE_tr, MSE_cv in a data frame named **result_reg**. Your data frame
+    should have 7 rows and 3 columns.
+
+```{r}
+result_reg <- NULL
+#### ENTER YOUR CODE HERE ####
+numbers <- c(0,0.1,0.5,1,5,10,20) 
+result <- tibble(lambda=numeric(),
+                 MSE_tr=numeric(),
+                 MSE_cv=numeric())
+
+## To get better value of alpha ans theta we need to use gridsearch
+## figure out how to use that here.
+
+
+for (lambda in numbers){
+  result_reg <-  cvReg(X_tr, y_tr, X_cv, y_cv, 0.001, 150, lambda)
+  #result %>% add_row(lambda = lambda, MSE_tr = result_reg$MSE_tr, MSE_cv=result_reg$MSE_cv)
+  result <- result %>% add_row(lambda = lambda, MSE_tr = result_reg$MSE_tr, MSE_cv=result_reg$MSE_cv)
+}
+############################
+ans_rec <- recordAns(varname="result_reg_mpg", score=5, answer=result_reg, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+
+result
+```
+
+6.  **[2 pts]** Use `ggplot()` to plot MSE_tr and MSE_cv as a function
+    of $\lambda$. Both MSE_tr and MSE_cv should be on the same figure.
+    Label all axes. Use legend to indicate cleary which curve is MSE_tr
+    and which curve is MSE_cv. Store the plot in a variable named
+    **p5**.
+
+```{r}
+p5 <- NULL
+#### ENTER YOUR CODE HERE ####
+
+p51 <- ggplot(result) + 
+  geom_line( aes(x=lambda, y=MSE_tr,colour="MSE_tr"), size=1)
+    
+    # add geometry of the plot (line)
+p5 <- p51 + geom_line(aes(x=lambda, y=MSE_cv,colour="MSE_cv"),size=1) + 
+    # add labels
+    labs(x="Lambda [Hyperparameter]", y="MSE [Cost Vector]", title="Training and Cross validation error")
+
+
+############################
+ans_rec <- recordAns(varname="p5", score=2, answer=p5, ans_list=ans_rec$ans_list, score_df=ans_rec$score_df)
+
+p5
+```
+
+7.  **[1 pt]** Based on the plot created in step 5, what would be the
+    appropriate value of $\lambda$ that you would use? Why? Type you
+    answer in the space below.
+
+> Type your answer here: The appropriate value of lambda would be around
+> the middle as, the overall bias and variance would be in the
+> equilibrium at that point. If we chose the lambda to be too small -
+> say 0.1 the bias would be the lowest in that case but the variance
+> would be really high. So to decrease the variance we need a value of
+> lambda at which both variance would be lowest.
+
+8.  **[1 pt]** In comparison to the normal (unregularized) linear
+    regression, does regularization help in this case? Explain.
+
+> Type your answer here: Yes, the regularization helps to decrease the
+> overall variance and over fitting.
+
+------------------------------------------------------------------------
+
+# Grading
+
+This part is for the grading purpose. **DO NOT modify anything in this
+section.**
+
+```{r}
+score_df <- ans_rec$score_df
+```
+
+-   Scores list
+
+```{r}
+print(ans_rec$score_df)
+```
+
+-   Print out the answers.
+
+1.  `r paste(score_df$varname[1], " ... " , score_df$score[1],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[1]
+head(ans_rec$ans_list[[varname]])
+```
+
+2.  `r paste(score_df$varname[2], " ... " , score_df$score[2],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[2]
+head(ans_rec$ans_list[[varname]])
+```
+
+3.  `r paste(score_df$varname[3], " ... " , score_df$score[3],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[3]
+print(ans_rec$ans_list[[varname]])
+```
+
+4.  `r paste(score_df$varname[4], " ... " , score_df$score[4],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[4]
+print(ans_rec$ans_list[[varname]])
+```
+
+5.  `r paste(score_df$varname[5], " ... " , score_df$score[5],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[5]
+print(ans_rec$ans_list[[varname]])
+```
+
+6.  `r paste(score_df$varname[6], " ... " , score_df$score[6],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[6]
+print(ans_rec$ans_list[[varname]])
+```
+
+7.  `r paste(score_df$varname[7], " ... " , score_df$score[7],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[7]
+print(ans_rec$ans_list[[varname]])
+```
+
+8.  `r paste(score_df$varname[8], " ... " , score_df$score[8],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[8]
+head(ans_rec$ans_list[[varname]])
+```
+
+9.  `r paste(score_df$varname[9], " ... " , score_df$score[9],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[9]
+print(ans_rec$ans_list[[varname]])
+```
+
+10. `r paste(score_df$varname[10], " ... " , score_df$score[10],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[10]
+print(ans_rec$ans_list[[varname]])
+```
+
+11. `r paste(score_df$varname[11], " ... " , score_df$score[11],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[11]
+head(ans_rec$ans_list[[varname]])
+```
+
+12. `r paste(score_df$varname[12], " ... " , score_df$score[12],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[12]
+head(ans_rec$ans_list[[varname]])
+```
+
+13. `r paste(score_df$varname[13], " ... " , score_df$score[13],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[13]
+print(ans_rec$ans_list[[varname]])
+```
+
+14. `r paste(score_df$varname[14], " ... " , score_df$score[14],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[14]
+print(ans_rec$ans_list[[varname]])
+```
+
+15. `r paste(score_df$varname[15], " ... " , score_df$score[15],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[15]
+head(ans_rec$ans_list[[varname]])
+```
+
+16. `r paste(score_df$varname[16], " ... " , score_df$score[16],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[16]
+print(ans_rec$ans_list[[varname]])
+```
+
+17. `r paste(score_df$varname[17], " ... " , score_df$score[17],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[17]
+print(ans_rec$ans_list[[varname]])
+```
+
+18. `r paste(score_df$varname[18], " ... " , score_df$score[18],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[18]
+head(ans_rec$ans_list[[varname]])
+```
+
+19. `r paste(score_df$varname[19], " ... " , score_df$score[19],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[19]
+head(ans_rec$ans_list[[varname]])
+```
+
+20. `r paste(score_df$varname[20], " ... " , score_df$score[20],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[20]
+print(ans_rec$ans_list[[varname]])
+```
+
+21. `r paste(score_df$varname[21], " ... " , score_df$score[21],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[21]
+head(ans_rec$ans_list[[varname]])
+```
+
+22. `r paste(score_df$varname[22], " ... " , score_df$score[22],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[22]
+head(ans_rec$ans_list[[varname]])
+```
+
+23. `r paste(score_df$varname[23], " ... " , score_df$score[23],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[23]
+print(ans_rec$ans_list[[varname]])
+```
+
+24. `r paste(score_df$varname[24], " ... " , score_df$score[24],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[24]
+head(ans_rec$ans_list[[varname]])
+```
+
+25. `r paste(score_df$varname[25], " ... " , score_df$score[25],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[25]
+print(ans_rec$ans_list[[varname]])
+```
+
+26. `r paste(score_df$varname[26], " ... " , score_df$score[26],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[26]
+print(ans_rec$ans_list[[varname]])
+```
+
+27. `r paste(score_df$varname[27], " ... " , score_df$score[27],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[27]
+print(ans_rec$ans_list[[varname]])
+```
+
+28. `r paste(score_df$varname[28], " ... " , score_df$score[28],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[28]
+head(ans_rec$ans_list[[varname]])
+```
+
+29. `r paste(score_df$varname[29], " ... " , score_df$score[29],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[29]
+head(ans_rec$ans_list[[varname]])
+```
+
+30. `r paste(score_df$varname[30], " ... " , score_df$score[30],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[30]
+head(ans_rec$ans_list[[varname]])
+```
+
+31. `r paste(score_df$varname[31], " ... " , score_df$score[31],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[31]
+head(ans_rec$ans_list[[varname]])
+```
+
+32. `r paste(score_df$varname[32], " ... " , score_df$score[32],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[32]
+print(ans_rec$ans_list[[varname]])
+```
+
+33. `r paste(score_df$varname[33], " ... " , score_df$score[33],  " pts")`
+
+```{r, echo=FALSE}
+varname <- score_df$varname[33]
+print(ans_rec$ans_list[[varname]])
+```
